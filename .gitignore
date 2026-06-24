@@ -1,0 +1,25 @@
+# Dépendances
+node_modules/
+
+# Secrets — JAMAIS committés
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Éditeurs / OS
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+Thumbs.db

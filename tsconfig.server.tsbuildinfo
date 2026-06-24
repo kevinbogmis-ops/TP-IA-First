@@ -1,0 +1,1 @@
+{"root":["./server/actions.ts","./server/chat.ts","./server/env.ts","./server/index.ts","./server/interpret.ts","./server/ollama.ts","./server/supabase.ts","./shared/api.ts","./shared/intentions.ts","./test/interpret.test.ts"],"version":"5.9.3"}

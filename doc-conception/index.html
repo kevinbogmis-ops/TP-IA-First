@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doc de conception · Assistant tâches d'équipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF; --bg-elev: #FAFAFA; --bg-elev-2: #F1F2F4;
+    --border: #E4E4E7; --border-soft: #EDEDF0;
+    --text: #0A0A0A; --text-soft: #3F3F46; --text-dim: #71717A;
+    --brand: #E60028; --brand-soft: #C00020;
+    --accent: #0A0A0A; --accent-soft: #3F3F46;
+    --code-bg: #F4F4F5;
+    --guide-bg: #FEE7EB; --guide-border: #E60028;
+    --example-bg: #F4F4F5; --example-border: #0A0A0A;
+    --sidebar-bg: #0A0A0A;
+    --sidebar-text: #E4E4E7; --sidebar-text-soft: #A1A1AA; --sidebar-text-dim: #71717A;
+    --sidebar-border: #27272A; --sidebar-elev: #18181B;
+    --sidebar-w: 320px; --content-max: 880px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+  body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.65; font-size: 15px; -webkit-font-smoothing: antialiased; }
+  .layout { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
+  .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--sidebar-bg); color: var(--sidebar-text); padding: 28px 22px; }
+  .sidebar-brand { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.3px; margin-bottom: 4px; }
+  .sidebar-brand svg { flex-shrink: 0; }
+  .sidebar-brand .brand-accent { color: var(--brand); }
+  .sidebar-subtitle { font-family: var(--font-mono); font-size: 10px; color: var(--sidebar-text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 26px; }
+  .nav { list-style: none; }
+  .nav li { margin: 2px 0; }
+  .nav a { display: block; padding: 7px 10px; color: var(--sidebar-text-soft); text-decoration: none; font-size: 13.5px; border-radius: 4px; transition: all 0.12s ease; border-left: 2px solid transparent; }
+  .nav a:hover { color: var(--sidebar-text); background: var(--sidebar-elev); }
+  .nav a.active { color: #FFFFFF; background: var(--sidebar-elev); border-left-color: var(--brand); font-weight: 600; }
+  .nav-num { display: inline-block; color: var(--sidebar-text-dim); font-family: var(--font-mono); font-size: 11px; margin-right: 8px; width: 22px; }
+  .nav a.active .nav-num { color: var(--brand); }
+  .nav-section { font-size: 10px; color: var(--sidebar-text-dim); text-transform: uppercase; letter-spacing: 1.2px; padding: 20px 10px 6px; font-weight: 700; }
+  .toc-title { font-family: var(--font-mono); font-size: 10px; color: var(--sidebar-text-dim); text-transform: uppercase; letter-spacing: 1.2px; padding: 22px 10px 6px; font-weight: 700; }
+  .toc { list-style: none; }
+  .toc li { margin: 1px 0; }
+  .toc a { display: block; padding: 5px 10px 5px 22px; color: var(--sidebar-text-dim); text-decoration: none; font-size: 12.5px; border-radius: 4px; }
+  .toc a:hover { color: var(--sidebar-text); background: var(--sidebar-elev); }
+  .nav a, .toc a { border-bottom: none; }
+  .content { padding: 56px 64px 56px; max-width: calc(var(--content-max) + 128px); }
+  .content-inner { max-width: var(--content-max); }
+  h1 { font-size: 40px; font-weight: 800; color: var(--text); margin-bottom: 16px; letter-spacing: -0.8px; }
+  h1 .h1-accent { color: var(--brand); }
+  h2 { font-size: 26px; font-weight: 800; color: var(--text); margin: 54px 0 16px; padding-bottom: 11px; border-bottom: 2px solid var(--text); letter-spacing: -0.4px; }
+  h2 .h2-num { color: var(--brand); font-family: var(--font-mono); font-size: 17px; font-weight: 500; margin-right: 13px; }
+  h3 { font-size: 16px; font-weight: 700; color: var(--text); margin: 28px 0 10px; }
+  h3 .h3-accent { color: var(--brand); }
+  h4 { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: 0.6px; margin: 22px 0 8px; }
+  p { margin: 12px 0; }
+  ul, ol { margin: 12px 0 12px 24px; }
+  li { margin: 5px 0; }
+  a { color: var(--brand); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  a:hover { border-bottom-color: var(--brand); }
+  strong { color: var(--text); font-weight: 700; }
+  em { color: var(--text-soft); font-style: italic; }
+  code { font-family: var(--font-mono); background: var(--code-bg); color: var(--brand); padding: 2px 6px; border-radius: 3px; font-size: 12.5px; border: 1px solid var(--border-soft); }
+  pre { background: #0A0A0A; color: #E4E4E7; border-radius: 6px; padding: 14px 16px; margin: 14px 0; overflow-x: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.55; }
+  pre code { background: transparent; color: inherit; border: none; padding: 0; font-size: inherit; }
+  .tok-key { color: #93C5FD; }
+  .tok-str { color: #FCD34D; }
+  .tok-com { color: #A1A1AA; font-style: italic; }
+  .tok-fn  { color: #FCA5A5; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  th { background: #0A0A0A; color: #FFFFFF; text-align: left; padding: 9px 12px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; color: var(--text-soft); }
+  tr:last-child td { border-bottom: none; }
+  td a { color: var(--brand); }
+  .bareme-sec td { background: var(--text); color: #FFFFFF; font-weight: 700; }
+  .bareme-total td { background: var(--brand); color: #FFFFFF; font-weight: 700; }
+  .num-col { text-align: center; white-space: nowrap; }
+  .frontmatter { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 0 0 26px; }
+  .frontmatter table { margin: 0; background: transparent; border: none; border-radius: 0; }
+  .frontmatter th, .frontmatter td { border: none; padding: 4px 10px 4px 0; background: transparent; text-transform: none; letter-spacing: normal; font-size: 13.5px; color: var(--text-soft); }
+  .frontmatter th { color: var(--text-dim); font-weight: 500; font-family: var(--font-mono); font-size: 12px; width: 210px; }
+  .frontmatter td { color: var(--text); }
+  .guide { background: var(--guide-bg); border-left: 3px solid var(--guide-border); border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 14px 0; font-size: 13.5px; color: var(--text); }
+  .guide-label { display: inline-block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--brand); font-weight: 700; margin-right: 8px; }
+  .banner-exemple { background: var(--example-bg); border-left: 3px solid var(--example-border); border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 14px 0; font-size: 13.5px; color: var(--text); }
+  .banner-exemple-label { display: inline-block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text); font-weight: 700; margin-right: 8px; }
+  .banner-calib { background: #FFF8DC; border-left: 3px solid #C9791C; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 14px 0 18px; font-size: 13px; color: var(--text); }
+  .banner-calib-label { display: inline-block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #C9791C; font-weight: 700; margin-right: 8px; }
+  .todo { border: 1px dashed #D4D4D8; border-radius: 6px; padding: 13px 16px; margin: 12px 0; color: var(--text-dim); font-style: italic; font-size: 13.5px; background: var(--bg-elev); }
+  .todo-label { display: inline-block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); font-weight: 700; margin-right: 8px; font-style: normal; }
+  .wf-cap { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin: 18px 0 6px; }
+  .wireframe { border: 1.5px solid #C4C8D2; border-radius: 8px; background: #fff; margin: 8px 0 4px; overflow: hidden; max-width: 460px; }
+  .wireframe.wf-empty { border-style: dashed; }
+  .wf-empty-body { padding: 56px 16px; text-align: center; color: #9AA0AE; font-style: italic; font-size: 12.5px; }
+  .wf-bar { background: #ECEEF2; padding: 9px 13px; font-size: 11.5px; color: #3F3F46; border-bottom: 1px solid #DADCE3; font-family: var(--font-mono); font-weight: 600; }
+  .wf-filters { display: flex; gap: 6px; padding: 8px 13px; border-bottom: 1px solid #E8EAEF; background: #FAFBFC; flex-wrap: wrap; }
+  .wf-chip { font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 10px; background: #FFFFFF; border: 1px solid #DADCE3; color: #6B7280; text-transform: uppercase; letter-spacing: 0.4px; }
+  .wf-chip.active { background: #0A0A0A; color: #FFFFFF; border-color: #0A0A0A; }
+  .wf-body { padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+  .wf-bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.45; }
+  .wf-bubble.bot { background: #F1F2F4; color: #0A0A0A; align-self: flex-start; border-bottom-left-radius: 3px; }
+  .wf-bubble.user { background: #0A0A0A; color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+  .wf-loading { padding: 5px 12px; color: #9AA0AE; font-style: italic; font-size: 11.5px; align-self: flex-start; }
+  .wf-input { display: flex; align-items: center; gap: 8px; border: 1px solid #D5D8E0; border-radius: 8px; padding: 8px 12px; color: #9AA0AE; font-size: 12.5px; margin: 2px 14px 14px; }
+  .wf-send { margin-left: auto; background: var(--brand); color: #fff; border-radius: 6px; padding: 4px 11px; font-size: 11px; font-weight: 600; }
+  .wf-fab { position: absolute; bottom: 60px; right: 14px; background: var(--brand); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; box-shadow: 0 3px 8px rgba(230, 0, 40, 0.4); }
+  .wf-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 13px; border-bottom: 1px solid #E8EAEF; font-size: 12.5px; color: #0A0A0A; }
+  .wf-sub { padding: 5px 13px 5px 28px; font-size: 11.5px; color: #6B7280; border-bottom: 1px solid #F1F3F6; }
+  .wf-row:last-child, .wf-sub:last-child { border-bottom: none; }
+  .wf-tag { font-family: var(--font-mono); font-size: 9.5px; background: #F1F2F4; color: #3F3F46; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .wf-tag.brand { background: var(--brand); color: #FFFFFF; }
+  .wf-map { height: 200px; background: linear-gradient(135deg, #E8EEF2 0%, #DDE5EE 100%); position: relative; overflow: hidden; }
+  .wf-map::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.45) 1px, transparent 1px); background-size: 32px 32px; }
+  .wf-pin { position: absolute; width: 14px; height: 14px; border-radius: 50% 50% 50% 0; background: var(--brand); transform: rotate(-45deg); border: 2px solid #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,0.25); }
+  .wf-pin.user { background: #0A0A0A; }
+  .wf-pref { padding: 14px; }
+  .wf-pref .label { font-family: var(--font-mono); font-size: 10px; color: #71717A; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; font-weight: 700; }
+  .wf-pref .row { margin-bottom: 14px; }
+  .wf-pref .row:last-child { margin-bottom: 0; }
+  .wf-pref .chips { display: flex; gap: 5px; flex-wrap: wrap; }
+  .wf-pref .twocol { display: flex; gap: 24px; font-size: 12.5px; color: #0A0A0A; }
+  .wf-pref .twocol .col { flex: 1; }
+  .wf-pref .hint { margin-top: 12px; font-size: 11px; color: #6B7280; font-style: italic; }
+  .pager { display: flex; justify-content: space-between; gap: 16px; margin: 64px 0 0; padding-top: 28px; border-top: 1px solid var(--border); }
+  .pager a { flex: 0 1 320px; display: flex; flex-direction: column; padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; transition: all 0.15s; border-bottom: 1px solid var(--border); }
+  .pager a:hover { border-color: var(--brand); background: var(--bg-elev); }
+  .pager-next { margin-left: auto; text-align: right; }
+  .pager-spacer { flex: 0 1 320px; }
+  .pager-dir { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+  .pager-title { font-size: 14.5px; font-weight: 700; color: var(--text); margin-top: 4px; }
+  .pager a:hover .pager-title { color: var(--brand); }
+  .footer { margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11.5px; font-family: var(--font-mono); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  .sidebar::-webkit-scrollbar-track { background: var(--sidebar-bg); }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--sidebar-border); }
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .content { padding: 40px 30px 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="6" fill="#0A0A0A"/><path d="M10 9 L17 17 L24 9 M17 17 L17 26" stroke="#E60028" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>TP IA-first</span></div>
+    <div class="sidebar-subtitle">Bachelor 3 · Ynov</div>
+    <ul class="nav">
+      <li class="nav-section">Doc de conception · Tâches d'équipe</li>
+      <li><a href="#page1"><span class="nav-num">01.</span>Produit et périmètre</a></li>
+      <li><a href="#page2"><span class="nav-num">02.</span>Modèle métier</a></li>
+      <li><a href="#page3"><span class="nav-num">03.</span>Sécurité</a></li>
+      <li><a href="#page4"><span class="nav-num">04.</span>Test Strategy</a></li>
+      <li><a href="#page5"><span class="nav-num">05.</span>Wireframes</a></li>
+    </ul>
+  </aside>
+  <main class="content">
+  <div class="content-inner">
+
+<!-- ===== 01 · Produit et périmètre ===== -->
+<h1 id="page1">01 · Produit et périmètre</h1>
+    <div class="frontmatter"><table><tr><th>Version</th><td>1.0</td></tr><tr><th>Dernière mise à jour</th><td>2026-06-24</td></tr><tr><th>Périmètre</th><td>Vision, utilisateurs, user stories, catalogue d’intentions, hors-périmètre</td></tr></table></div>
+    <p>Sujet retenu : <strong>Assistant de gestion de tâches d’équipe</strong>. Une application IA-first où le chat est le seul point d’entrée des actions, doublée d’une vue tableau en lecture seule.</p>
+
+    <section id="p1s1">
+      <h2><span class="h2-num">1.</span>Vision et utilisateurs</h2>
+      <p>Une petite équipe pilote ses tâches en discutant avec un assistant, sans jamais remplir de formulaire. On écrit « ajoute une tâche maquetter l’accueil dans le projet Site » ou « qu’est-ce qui est en retard ? », et l’assistant interprète la demande, agit sur la base, et répond dans le chat. La valeur : capturer et suivre le travail à la vitesse de la conversation, là où un outil classique impose des écrans de saisie.</p>
+      <h3>Persona</h3>
+      <p>Le <strong>membre d’équipe</strong> (chef de projet ou contributeur) qui jongle entre plusieurs projets et veut noter, retrouver et faire avancer ses tâches sans quitter le fil de discussion. Il connaît ses projets par leur nom, pas par un identifiant.</p>
+    </section>
+
+    <section id="p1s2">
+      <h2><span class="h2-num">2.</span>User stories</h2>
+      
+      <p>Les user stories décrivent les besoins de votre utilisateur au format classique : « En tant que X, je veux Y, afin de Z ». Elles vivent au-dessus du catalogue d’intentions : ce sont les « pourquoi » dont les intentions conversationnelles sont les « comment ». Visez 3 à 5 stories qui couvrent le cœur de votre périmètre.</p>
+      <table><thead><tr><th>En tant que...</th><th>Je veux...</th><th>Afin de...</th></tr></thead><tbody><tr><td>membre d’équipe</td><td>ajouter une tâche à un projet en une phrase</td><td>capturer le travail à faire sans quitter la conversation</td></tr><tr><td>membre d’équipe</td><td>demander « qu’est-ce qui est en retard ? »</td><td>repérer d’un coup d’œil les tâches dont l’échéance est dépassée</td></tr><tr><td>membre d’équipe</td><td>changer le statut d’une tâche en langage naturel</td><td>faire avancer le travail sans manipuler de formulaire</td></tr><tr><td>membre d’équipe</td><td>supprimer une tâche obsolète</td><td>garder un tableau de bord propre et fiable</td></tr><tr><td>membre d’équipe</td><td>demander à l’assistant de découper une grosse tâche</td><td>obtenir des sous-étapes concrètes quand je ne sais pas par où commencer</td></tr></tbody></table>
+    </section>
+
+    <section id="p1s3">
+      <h2><span class="h2-num">3.</span>Catalogue d’intentions</h2>
+      
+      <p>Listez ce que l’utilisateur peut demander en langage naturel. Une ligne par intention. Au moins une intention doit être <strong>générative</strong> (résumé, conseil, brouillon).</p>
+      <table><thead><tr><th>Intention (exemple de phrase)</th><th>Type</th><th>Action déclenchée</th><th>Réponse de l’assistant</th></tr></thead><tbody><tr><td>« ajoute une tâche maquetter l’accueil dans le projet Site »</td><td>Création</td><td>INSERT d’une Tâche rattachée au projet Site (créé s’il n’existe pas)</td><td>Confirme et rappelle le projet et l’échéance</td></tr><tr><td>« qu’est-ce qui est en retard ? » / « montre les tâches du projet Site »</td><td>Lecture filtrée</td><td>SELECT des tâches de l’utilisateur, filtré par échéance dépassée ou par projet</td><td>Liste les tâches concernées avec leur statut</td></tr><tr><td>« marque maquetter l’accueil comme terminé »</td><td>Mise à jour</td><td>UPDATE du statut de la tâche ciblée</td><td>Confirme le nouveau statut</td></tr><tr><td>« supprime la tâche maquetter l’accueil »</td><td>Suppression</td><td>DELETE de la tâche ciblée</td><td>Confirme la suppression</td></tr><tr><td>« découpe la tâche lancer le site en sous-tâches »</td><td>Génération</td><td>Appel Ollama Cloud avec le titre de la tâche ; aucune écriture en base</td><td>Affiche 4 à 6 sous-tâches suggérées dans le chat</td></tr></tbody></table>
+      <p>Cinq intentions : un CRUD complet (créer, lire/filtrer, mettre à jour, supprimer) plus une intention générative. La mécanique retenue est une <strong>sortie JSON structurée</strong> du modèle, validée côté serveur avant exécution (voir section 03 · Sécurité).</p>
+    </section>
+
+    <section id="p1s4">
+      <h2><span class="h2-num">4.</span>Hors-périmètre</h2>
+      <p>Volontairement exclu de la v1 pour tenir le périmètre en 3 h. L’assistant le signale poliment et propose ce qu’il sait faire :</p>
+      <ul>
+        <li><strong>Affectation des tâches à des coéquipiers</strong> : pas de gestion de membres ni de notifications. Chaque utilisateur ne voit que ses propres données.</li>
+        <li><strong>Sous-tâches persistées</strong> : l’intention « découper » suggère des étapes dans le chat mais ne crée rien en base (le sujet impose exactement 2 entités).</li>
+        <li><strong>Dates de début, priorités, étiquettes, pièces jointes</strong> : une tâche a un titre, un statut et une échéance, rien de plus.</li>
+        <li><strong>Demandes hors sujet</strong> (météo, traduction, questions générales) : l’assistant répond qu’il gère uniquement les projets et les tâches.</li>
+      </ul>
+    </section>
+
+    <hr style="border:none;border-top:2px solid var(--border);margin:64px 0 0;">
+
+<!-- ===== 02 · Modèle métier ===== -->
+<h1 id="page2">02 · Modèle métier</h1>
+    <div class="frontmatter"><table><tr><th>Version</th><td>1.0</td></tr><tr><th>Dernière mise à jour</th><td>2026-06-24</td></tr><tr><th>Périmètre</th><td>Entités, champs, relations, vocabulaire</td></tr></table></div>
+    <p>Deux entités métier pour l’assistant de gestion de tâches d’équipe : <strong>Projet</strong> et <strong>Tâche</strong>. L’utilisateur connecté (auth Supabase) n’est pas compté dans les deux entités.</p>
+
+    <section id="p2s1">
+      <h2><span class="h2-num">1.</span>Entités</h2>
+      
+      <p>Un projet regroupe des tâches. Chaque ligne des deux tables porte un <code>user_id</code> pour le cloisonnement par utilisateur (voir section 03 · Sécurité).</p>
+      <table><thead><tr><th>Entité</th><th>Champs (nom : type)</th><th>Description</th></tr></thead><tbody><tr><td>Projet</td><td>id : uuid · nom : text · user_id : uuid · cree_le : timestamp</td><td>Un regroupement de tâches portant un nom (ex. « Site »), appartenant à un utilisateur.</td></tr><tr><td>Tâche</td><td>id : uuid · projet_id : uuid (FK Projet) · titre : text · statut : enum (a_faire, en_cours, termine) · echeance : date (nullable) · user_id : uuid · cree_le : timestamp</td><td>Une chose à faire, rattachée à un projet. L’échéance est optionnelle ; elle sert au filtre « en retard ».</td></tr></tbody></table>
+      <h3>Cycle de vie d’une tâche</h3>
+      <p>Statut initial : <code>a_faire</code>. Transitions libres entre les trois statuts (<code>a_faire</code>, <code>en_cours</code>, <code>termine</code>) via l’intention « changer le statut ». Une tâche est dite <em>en retard</em> si son échéance est dépassée et que son statut n’est pas <code>termine</code>.</p>
+    </section>
+
+    <section id="p2s2">
+      <h2><span class="h2-num">2.</span>Relations</h2>
+      
+      <p>Une seule relation entre les deux entités.</p>
+      <table><thead><tr><th>Entité source</th><th>Entité cible</th><th>Cardinalité</th><th>Sémantique</th></tr></thead><tbody><tr><td>Projet</td><td>Tâche</td><td>1 vers N</td><td>Un projet contient 0 à plusieurs tâches ; une tâche appartient à un seul projet.</td></tr></tbody></table>
+      <h3>Règle de cascade</h3>
+      <p>La suppression d’un projet entraîne la suppression de ses tâches (<code>on delete cascade</code> sur la clé étrangère <code>projet_id</code>). Dans la v1, l’assistant supprime surtout des tâches une par une ; la suppression de projet via le chat reste hors du catalogue d’intentions.</p>
+    </section>
+
+    <section id="p2s3">
+      <h2><span class="h2-num">3.</span>Vocabulaire</h2>
+      <ul>
+        <li><strong>projet</strong> : un regroupement de tâches identifié par son nom. L’utilisateur le désigne en langage naturel (« le projet Site »), jamais par son id.</li>
+        <li><strong>statut</strong> : l’état d’une tâche, parmi <code>a_faire</code>, <code>en_cours</code>, <code>termine</code>.</li>
+        <li><strong>échéance</strong> : la date limite d’une tâche. Optionnelle. Une tâche sans échéance n’apparaît jamais dans « en retard ».</li>
+        <li><strong>en retard</strong> : raccourci pour « tâche dont l’échéance est dépassée et le statut n’est pas <code>termine</code> ». Sert au filtre « qu’est-ce qui est en retard ? ».</li>
+      </ul>
+    </section>
+
+    <hr style="border:none;border-top:2px solid var(--border);margin:64px 0 0;">
+
+<!-- ===== 03 · Sécurité ===== -->
+<h1 id="page3">03 · Sécurité</h1>
+    <div class="frontmatter"><table><tr><th>Version</th><td>1.0</td></tr><tr><th>Dernière mise à jour</th><td>2026-06-24</td></tr><tr><th>Périmètre</th><td>Modèle d’autorisation, secrets, validation de l’action IA</td></tr></table></div>
+    <p>Trois lignes de défense : le cloisonnement par utilisateur (RLS Supabase), des secrets jamais exposés au navigateur, et la validation stricte de l’action renvoyée par le modèle avant exécution.</p>
+
+    <section id="p3s1">
+      <h2><span class="h2-num">1.</span>Modèle d’autorisation</h2>
+      <p>Chaque ligne des tables <code>projets</code> et <code>taches</code> porte un champ <code>user_id</code>. Une Row Level Security (RLS) Supabase n’autorise la lecture et l’écriture d’une ligne que si <code>user_id = auth.uid()</code>. Un utilisateur ne peut jamais voir ni modifier les données d’un autre, même en falsifiant un identifiant côté client : la décision est prise par Postgres, pas par le front. Le <code>user_id</code> est toujours forcé côté serveur depuis la session, jamais lu depuis le message de l’utilisateur.</p>
+      <h4>Policies SQL appliquées</h4>
+      <pre><code><span class="tok-com">-- Activer RLS sur les deux tables</span>
+<span class="tok-key">alter table</span> projets <span class="tok-key">enable row level security</span>;
+<span class="tok-key">alter table</span> taches  <span class="tok-key">enable row level security</span>;
+
+<span class="tok-com">-- Projets : chacun ne voit et ne touche que les siens</span>
+<span class="tok-key">create policy</span> <span class="tok-str">"projets_user_only"</span> <span class="tok-key">on</span> projets
+  <span class="tok-key">for all</span>
+  <span class="tok-key">using</span> (user_id = <span class="tok-fn">auth.uid</span>())
+  <span class="tok-key">with check</span> (user_id = <span class="tok-fn">auth.uid</span>());
+
+<span class="tok-com">-- Tâches : même règle, et on vérifie aussi le projet parent</span>
+<span class="tok-key">create policy</span> <span class="tok-str">"taches_user_only"</span> <span class="tok-key">on</span> taches
+  <span class="tok-key">for all</span>
+  <span class="tok-key">using</span> (user_id = <span class="tok-fn">auth.uid</span>())
+  <span class="tok-key">with check</span> (
+    user_id = <span class="tok-fn">auth.uid</span>()
+    <span class="tok-key">and exists</span> (<span class="tok-key">select</span> 1 <span class="tok-key">from</span> projets
+                <span class="tok-key">where</span> projets.id = taches.projet_id
+                  <span class="tok-key">and</span> projets.user_id = <span class="tok-fn">auth.uid</span>())
+  );</code></pre>
+    </section>
+
+    <section id="p3s2">
+      <h2><span class="h2-num">2.</span>Gestion des secrets</h2>
+      <p>Les clés sensibles vivent dans <code>.env</code>, lu uniquement côté serveur. <code>.env</code> est listé dans <code>.gitignore</code>, et un <code>.env.example</code> est committé pour permettre à l’évaluateur de lancer l’app en local. L’appel à Ollama Cloud passe par une route serveur (<code>/api/chat</code>) : aucun composant du navigateur ne lit <code>OLLAMA_API_KEY</code> ni <code>SUPABASE_SERVICE_ROLE_KEY</code>.</p>
+      <h4>Contenu de .env.example</h4>
+      <pre><code><span class="tok-com"># Supabase : projet et clés</span>
+SUPABASE_URL=                  <span class="tok-com"># https://xxxxx.supabase.co</span>
+SUPABASE_ANON_KEY=             <span class="tok-com"># clé publique, RLS la protège</span>
+SUPABASE_SERVICE_ROLE_KEY=     <span class="tok-com"># clé serveur, jamais exposée au front</span>
+
+<span class="tok-com"># Ollama Cloud : appels strictement côté serveur</span>
+OLLAMA_API_KEY=                <span class="tok-com"># fournie par l'intervenant</span>
+OLLAMA_MODEL=qwen2.5:7b        <span class="tok-com"># modèle utilisé pour l'interprétation</span></code></pre>
+      <p>Règle simple : tout ce qui commence par <code>VITE_</code> (ou équivalent exposé au client) ne contient que des valeurs publiques. La clé service role et la clé Ollama ne portent jamais ce préfixe et restent côté serveur.</p>
+    </section>
+
+    <section id="p3s3">
+      <h2><span class="h2-num">3.</span>Validation de l’action IA</h2>
+      <p>Le modèle renvoie un JSON <code>{ intention, params }</code>. Avant toute exécution, le serveur le valide avec un schéma strict (Zod). Toute valeur hors schéma est rejetée et l’assistant répond « je n’ai pas compris, peux-tu reformuler ? ». Une intention inconnue ne déclenche donc jamais d’action : un message piégé ne peut pas détourner l’assistant vers une opération non prévue.</p>
+      <h4>Schéma de validation (Zod)</h4>
+      <pre><code><span class="tok-key">const</span> ActionSchema = z.<span class="tok-fn">discriminatedUnion</span>(<span class="tok-str">'intention'</span>, [
+  z.<span class="tok-fn">object</span>({
+    intention: z.<span class="tok-fn">literal</span>(<span class="tok-str">'creer_tache'</span>),
+    params: z.<span class="tok-fn">object</span>({
+      titre:       z.<span class="tok-fn">string</span>().<span class="tok-fn">min</span>(1).<span class="tok-fn">max</span>(120),
+      nom_projet:  z.<span class="tok-fn">string</span>().<span class="tok-fn">min</span>(1).<span class="tok-fn">max</span>(80),
+      echeance:    z.<span class="tok-fn">string</span>().<span class="tok-fn">date</span>().<span class="tok-fn">optional</span>(),
+    }),
+  }),
+  z.<span class="tok-fn">object</span>({
+    intention: z.<span class="tok-fn">literal</span>(<span class="tok-str">'lister_taches'</span>),
+    params: z.<span class="tok-fn">object</span>({
+      filtre:      z.<span class="tok-fn">enum</span>([<span class="tok-str">'en_retard'</span>, <span class="tok-str">'par_projet'</span>, <span class="tok-str">'par_statut'</span>, <span class="tok-str">'toutes'</span>]),
+      nom_projet:  z.<span class="tok-fn">string</span>().<span class="tok-fn">optional</span>(),
+      statut:      z.<span class="tok-fn">enum</span>([<span class="tok-str">'a_faire'</span>, <span class="tok-str">'en_cours'</span>, <span class="tok-str">'termine'</span>]).<span class="tok-fn">optional</span>(),
+    }),
+  }),
+  z.<span class="tok-fn">object</span>({
+    intention: z.<span class="tok-fn">literal</span>(<span class="tok-str">'changer_statut'</span>),
+    params: z.<span class="tok-fn">object</span>({
+      titre_tache:    z.<span class="tok-fn">string</span>().<span class="tok-fn">min</span>(1),
+      nouveau_statut: z.<span class="tok-fn">enum</span>([<span class="tok-str">'a_faire'</span>, <span class="tok-str">'en_cours'</span>, <span class="tok-str">'termine'</span>]),
+    }),
+  }),
+  z.<span class="tok-fn">object</span>({
+    intention: z.<span class="tok-fn">literal</span>(<span class="tok-str">'supprimer_tache'</span>),
+    params: z.<span class="tok-fn">object</span>({ titre_tache: z.<span class="tok-fn">string</span>().<span class="tok-fn">min</span>(1) }),
+  }),
+  z.<span class="tok-fn">object</span>({
+    intention: z.<span class="tok-fn">literal</span>(<span class="tok-str">'decouper_tache'</span>),
+    params: z.<span class="tok-fn">object</span>({ titre_tache: z.<span class="tok-fn">string</span>().<span class="tok-fn">min</span>(1) }),
+  }),
+]);</code></pre>
+      <p>Trois lignes de défense complémentaires : le schéma Zod rejette les intentions et paramètres inconnus ; la RLS Supabase bloque toute écriture hors du périmètre de l’utilisateur ; et le <code>user_id</code> est injecté côté serveur depuis la session, jamais depuis le message. L’assistant ne propose jamais une action qu’il n’a pas validée.</p>
+    </section>
+
+    <hr style="border:none;border-top:2px solid var(--border);margin:64px 0 0;">
+
+<!-- ===== 04 · Test Strategy ===== -->
+<h1 id="page4">04 · Test Strategy</h1>
+    <div class="frontmatter"><table><tr><th>Version</th><td>1.0</td></tr><tr><th>Dernière mise à jour</th><td>2026-06-24</td></tr><tr><th>Périmètre</th><td>Tests automatisés, plan de QA, critères d’acceptation</td></tr></table></div>
+    <p>La priorité de test est la pièce la plus risquée de l’app : la <strong>traduction d’un message en langage naturel vers une action structurée</strong>. C’est là que se concentrent les tests automatisés ; le reste passe par une recette manuelle.</p>
+
+    <section id="p4s1">
+      <h2><span class="h2-num">1.</span>Tests automatisés</h2>
+      <p>Outil : <strong>Vitest</strong>. On teste la fonction d’interprétation <code>interpret(message)</code>, qui prend une phrase et renvoie le JSON <code>{ intention, params }</code>. Un cas par intention, soit <strong>5 tests</strong> minimum, plus un cas « message incompris » qui doit être rejeté. L’appel à Ollama Cloud est mocké pour rendre les tests rapides et déterministes : on vérifie que la sortie est correctement parsée et validée par le schéma Zod, pas la qualité du modèle.</p>
+      <h4>Exemple de test (Vitest)</h4>
+      <pre><code><span class="tok-fn">test</span>(<span class="tok-str">'creer_tache parse une demande basique'</span>, <span class="tok-key">async</span> () => {
+  <span class="tok-key">const</span> r = <span class="tok-key">await</span> <span class="tok-fn">interpret</span>(
+    <span class="tok-str">'ajoute une tâche maquetter l\'accueil dans le projet Site'</span>
+  );
+  <span class="tok-fn">expect</span>(r.intention).<span class="tok-fn">toBe</span>(<span class="tok-str">'creer_tache'</span>);
+  <span class="tok-fn">expect</span>(r.params.titre).<span class="tok-fn">toMatch</span>(/maquetter/i);
+  <span class="tok-fn">expect</span>(r.params.nom_projet).<span class="tok-fn">toMatch</span>(/site/i);
+});
+
+<span class="tok-fn">test</span>(<span class="tok-str">'un message hors sujet est rejeté'</span>, <span class="tok-key">async</span> () => {
+  <span class="tok-key">const</span> r = <span class="tok-key">await</span> <span class="tok-fn">interpret</span>(<span class="tok-str">'quel temps fait-il à Paris ?'</span>);
+  <span class="tok-fn">expect</span>(r.valide).<span class="tok-fn">toBe</span>(<span class="tok-key">false</span>);
+});</code></pre>
+      <p>En complément, un test d’intégration optionnel vérifie qu’une intention <code>creer_tache</code> validée produit bien une ligne en base (avec une base Supabase de test).</p>
+    </section>
+
+    <section id="p4s2">
+      <h2><span class="h2-num">2.</span>Plan de QA</h2>
+      <p>Le fichier <code>QA.md</code> contient un tableau dérouleur, rempli en fin de séance. On déroule les 5 intentions une par une depuis le chat, on note l’écart entre l’attendu et l’obtenu, et on corrige les anomalies bloquantes avant de livrer. Les anomalies cosmétiques sont notées dans <code>PROMPTS.md</code> pour la traçabilité.</p>
+      <h4>Extrait du QA.md (cahier de recette)</h4>
+      <table><thead><tr><th>#</th><th>Intention</th><th>Phrase testée</th><th>Attendu</th><th>Obtenu</th><th>Statut</th></tr></thead><tbody><tr><td>1</td><td>creer_tache</td><td>« ajoute maquetter l’accueil dans le projet Site »</td><td>Tâche créée, statut a_faire, rattachée à Site</td><td>OK</td><td>OK</td></tr><tr><td>2</td><td>lister_taches</td><td>« qu’est-ce qui est en retard ? »</td><td>Seules les tâches en retard listées</td><td>OK</td><td>OK</td></tr><tr><td>3</td><td>changer_statut</td><td>« marque maquetter l’accueil comme terminé »</td><td>Statut passe à termine, vue mise à jour</td><td>OK</td><td>OK</td></tr><tr><td>4</td><td>supprimer_tache</td><td>« supprime maquetter l’accueil »</td><td>Tâche supprimée de la vue</td><td>OK</td><td>OK</td></tr><tr><td>5</td><td>decouper_tache</td><td>« découpe lancer le site en sous-tâches »</td><td>4 à 6 sous-tâches affichées dans le chat, rien en base</td><td>OK</td><td>OK</td></tr></tbody></table>
+    </section>
+
+    <section id="p4s3">
+      <h2><span class="h2-num">3.</span>Critères d’acceptation</h2>
+      
+      <p>Listez les vérifications qui prouvent que l’assistant fonctionne, intention par intention.</p>
+      <table><thead><tr><th>Intention</th><th>Résultat attendu</th></tr></thead><tbody><tr><td>« ajoute une tâche T dans le projet P »</td><td>La tâche T apparaît dans la vue tableau, statut a_faire, sous le projet P, en moins de 3 s. Si P n’existe pas, il est créé.</td></tr><tr><td>« qu’est-ce qui est en retard ? »</td><td>Seules les tâches dont l’échéance est dépassée et le statut ≠ termine sont listées. Les tâches sans échéance sont exclues.</td></tr><tr><td>« marque T comme terminé »</td><td>Le statut affiché de T passe à termine et la vue se met à jour sans recharger la page.</td></tr><tr><td>« supprime la tâche T »</td><td>T disparaît de la vue ; aucune autre tâche n’est affectée.</td></tr><tr><td>« découpe T en sous-tâches »</td><td>L’assistant affiche 4 à 6 sous-tâches cohérentes dans le chat ; aucune ligne n’est créée en base.</td></tr><tr><td>Message hors sujet ou incompris</td><td>L’assistant répond qu’il n’a pas compris et propose ce qu’il sait faire ; aucune action n’est exécutée.</td></tr></tbody></table>
+    </section>
+
+    <hr style="border:none;border-top:2px solid var(--border);margin:64px 0 0;">
+
+<!-- ===== 05 · Wireframes ===== -->
+<h1 id="page5">05 · Wireframes</h1>
+    <div class="frontmatter"><table><tr><th>Version</th><td>1.0</td></tr><tr><th>Dernière mise à jour</th><td>2026-06-24</td></tr><tr><th>Périmètre</th><td>Wireframes des écrans, rendus en HTML et CSS</td></tr></table></div>
+    <p>Deux écrans pour une app IA-first : le <strong>fil de conversation</strong>, seul point d’entrée des actions, et le <strong>tableau des tâches</strong> en lecture seule, qui reflète l’état réel et se met à jour après chaque action faite au chat.</p>
+
+    <section id="p5s1">
+      <h2><span class="h2-num">1.</span>Écran : le fil de conversation</h2>
+      
+      <div class="wf-cap">Fil de conversation · Assistant tâches d’équipe</div>
+      <div class="wireframe">
+        <div class="wf-bar">Assistant · Tâches d’équipe</div>
+        <div class="wf-body">
+          <div class="wf-bubble bot">Bonjour. Que puis-je faire pour vous ?</div>
+          <div class="wf-bubble user">ajoute une tâche maquetter l’accueil dans le projet Site</div>
+          <div class="wf-bubble bot">Noté. Tâche « maquetter l’accueil » ajoutée au projet Site, statut à faire.</div>
+          <div class="wf-bubble user">qu’est-ce qui est en retard ?</div>
+          <div class="wf-bubble bot">2 tâches en retard : « corriger le footer » (Site, échéance 20/06) et « relire les specs » (App, échéance 22/06).</div>
+          <div class="wf-bubble user">découpe la tâche lancer le site en sous-tâches</div>
+          <div class="wf-loading">l’assistant écrit...</div>
+        </div>
+        <div class="wf-input"><span>Écrivez votre demande...</span><span class="wf-send">Envoyer</span></div>
+      </div>
+      <p><strong>Notes d’interaction.</strong> Pendant que l’assistant interprète le message (appel à Ollama Cloud côté serveur), un indicateur « l’assistant écrit… » s’affiche et le champ de saisie reste actif. Si le modèle renvoie une intention inconnue ou invalide (rejetée par le schéma Zod), l’assistant répond « je n’ai pas compris, peux-tu reformuler ? » et n’exécute aucune action. Les actions destructrices (suppression) sont confirmées par un message clair avant de retirer la tâche de la vue.</p>
+    </section>
+
+    <section id="p5s2">
+      <h2><span class="h2-num">2.</span>Écran : tableau des tâches (lecture seule)</h2>
+      
+      <div class="wf-cap">Tableau des tâches · regroupées par projet</div>
+      <div class="wireframe">
+        <div class="wf-bar">Mes tâches</div>
+        <div class="wf-filters">
+          <span class="wf-chip active">Toutes</span>
+          <span class="wf-chip">À faire</span>
+          <span class="wf-chip">En cours</span>
+          <span class="wf-chip">En retard</span>
+        </div>
+        <div class="wf-body">
+          <div class="wf-sub">Projet · Site</div>
+          <div class="wf-row"><span><strong>maquetter l’accueil</strong> · échéance 28/06</span><span class="wf-tag">à faire</span></div>
+          <div class="wf-row"><span><strong>corriger le footer</strong> · échéance 20/06</span><span class="wf-tag brand">en retard</span></div>
+          <div class="wf-row"><span><strong>intégrer la page contact</strong> · échéance 30/06</span><span class="wf-tag">en cours</span></div>
+          <div class="wf-sub">Projet · App</div>
+          <div class="wf-row"><span><strong>relire les specs</strong> · échéance 22/06</span><span class="wf-tag brand">en retard</span></div>
+          <div class="wf-row"><span><strong>configurer le CI</strong> · pas d’échéance</span><span class="wf-tag">terminé</span></div>
+        </div>
+      </div>
+      <p><strong>Ce qu’affiche la vue.</strong> Toutes les tâches de l’utilisateur connecté, regroupées par projet, avec leur échéance et leur statut. Les tâches en retard (échéance dépassée, non terminées) sont signalées par un tag rouge. La vue est strictement en lecture seule : aucune saisie, aucun bouton d’action. Toute modification passe par le chat.</p>
+      <p><strong>Mise à jour.</strong> Après chaque action réussie au chat (création, changement de statut, suppression), la vue se rafraîchit automatiquement sans recharger la page, en relisant les données depuis Supabase. Grâce à la RLS, elle ne montre jamais que les données de l’utilisateur courant.</p>
+    </section>
+
+    <div class="footer">TP IA-first · Doc de conception · Assistant tâches d'équipe · v1.0</div>
+  </div>
+  </main>
+</div>
+</body>
+</html>
